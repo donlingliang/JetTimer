@@ -61,11 +61,6 @@ fun MyApp() {
 @ExperimentalAnimationApi
 @Composable
 fun HelloScreen() {
-    // TODO: https://stackoverflow.com/questions/63875411/type-statelistuser-has-no-method-getvaluenothing-kproperty-and-t
-    var name by remember { mutableStateOf("") }
-    HelloContent(name = name, onNameChange = { name = it })
-
-    // TODO: remove this code above after the challenge has been submitted.
     val viewModel: TimerViewModel = viewModel()
     Scaffold {
         val seconds: Int by viewModel.seconds.observeAsState(initial = 0)
@@ -140,26 +135,6 @@ fun Control(
                 }
             }
         }
-    }
-}
-
-@Composable
-fun HelloContent(name: String, onNameChange: (String) -> Unit) {
-    Column(modifier = Modifier.padding(16.dp)) {
-
-        if (name.isNotEmpty()) {
-            Text(
-                text = "Hello, $name",
-                modifier = Modifier.padding(bottom = 8.dp),
-                style = MaterialTheme.typography.h5
-            )
-        }
-
-        OutlinedTextField(
-            value = name,
-            onValueChange = { onNameChange(it) },
-            label = { Text("Name") }
-        )
     }
 }
 
