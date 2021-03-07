@@ -25,7 +25,7 @@ class TimerViewModel : ViewModel() {
     private val mutableState = MutableLiveData(State.Finished)
     val state: LiveData<State> = mutableState
 
-    private val mutableSeconds = MutableLiveData(150)
+    private val mutableSeconds = MutableLiveData(50)
     val seconds: LiveData<Int> = mutableSeconds
 
     fun toggle() {
@@ -55,7 +55,7 @@ class TimerViewModel : ViewModel() {
 
     private fun resetTimer() {
         mutableState.postValue(State.Finished)
-        mutableSeconds.postValue(150)
+        mutableSeconds.postValue(50)
     }
 
     fun isStarted(): Boolean {
