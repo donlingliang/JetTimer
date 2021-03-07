@@ -18,24 +18,38 @@ package com.example.androiddevchallenge
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.animation.*
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.FloatingActionButton
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Scaffold
+import androidx.compose.material.Surface
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import com.example.androiddevchallenge.ui.theme.MyTheme
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.compose.runtime.remember as remember
+import com.example.androiddevchallenge.ui.theme.MyTheme
 
 class MainActivity : AppCompatActivity() {
     @ExperimentalAnimationApi
@@ -66,10 +80,15 @@ fun HelloScreen() {
         val seconds: Int by viewModel.seconds.observeAsState(initial = 0)
         val isStarted: State by viewModel.state.observeAsState(initial = State.Finished)
 
+        var width = 1440
+
         Column(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            BackgroundIndicator(width, seconds)
             CountdownNumber(seconds)
             Control(
                 onTapFab = {
@@ -78,7 +97,18 @@ fun HelloScreen() {
                 isStarted
             )
         }
+    }
+}
 
+@Composable
+fun BackgroundIndicator(screenWidth: Int, seconds: Int, color: Color = Color.Cyan) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+    ) {
+        val canvas = Canvas(modifier = Modifier.fillMaxWidth()) {
+            drawRect(color = color, size = Size(screenWidth.toFloat(), 2400f * seconds / 150))
+        }
     }
 }
 
@@ -99,13 +129,9 @@ fun CountdownNumber(
         ) {
             Text(
                 seconds.toString().padStart(2, '0'),
-                style = MaterialTheme.typography.h1,
-                modifier = Modifier.alignByBaseline()
-            )
-            Text(
-                "s",
-                style = MaterialTheme.typography.h1,
-                modifier = Modifier.alignByBaseline()
+                modifier = Modifier.alignByBaseline(),
+                fontSize = 100.sp,
+                fontWeight = FontWeight.Bold
             )
         }
     }
@@ -119,19 +145,12 @@ fun Control(
 ) {
     AnimatedVisibility(
         visible = isStarted == State.Finished,
-        enter = fadeIn(initialAlpha = 0f),
-        exit = fadeOut(
-            // Overwrites the default animation with tween
-            animationSpec = tween(durationMillis = 250)
-        )
+        enter = fadeIn(),
+        exit = fadeOut()
     ) {
         Box(contentAlignment = Alignment.Center, modifier = Modifier.size(72.dp)) {
             FloatingActionButton(onClick = onTapFab) {
                 AnimatedVisibility(visible = isStarted == State.Finished) {
-                    Icon(
-                        Icons.Default.PlayArrow,
-                        contentDescription = "start"
-                    )
                 }
             }
         }
