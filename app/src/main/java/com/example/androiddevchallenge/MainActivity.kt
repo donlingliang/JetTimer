@@ -15,8 +15,13 @@
  */
 package com.example.androiddevchallenge
 
+import android.content.Context
+import android.os.Build
 import android.os.Bundle
+import android.util.DisplayMetrics
+import android.util.Log
 import androidx.activity.compose.setContent
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
@@ -33,7 +38,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.FloatingActionButton
-import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
@@ -42,45 +46,63 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.androiddevchallenge.ui.theme.MyTheme
 
+lateinit var context: Context
+
 class MainActivity : AppCompatActivity() {
+    @RequiresApi(Build.VERSION_CODES.R)
     @ExperimentalAnimationApi
     override fun onCreate(savedInstanceState: Bundle?) {
+        context = this@MainActivity
         super.onCreate(savedInstanceState)
         setContent {
             MyTheme {
-                MyApp()
+                MyApp(context as MainActivity)
             }
         }
     }
 }
 
 // Start building your app here!
+@RequiresApi(Build.VERSION_CODES.R)
 @ExperimentalAnimationApi
 @Composable
-fun MyApp() {
-    Surface(color = MaterialTheme.colors.background) {
-        HelloScreen()
+fun MyApp(context: MainActivity) {
+
+    val backgroundColor = Color(ContextCompat.getColor(context, R.color.background_color))
+    val highlight_color = Color(ContextCompat.getColor(context, R.color.highlight_color))
+
+    val displayMetrics = DisplayMetrics()
+    context.display?.getRealMetrics(displayMetrics)
+
+    Surface(color = backgroundColor) {
+        HelloScreen(highlight_color, displayMetrics)
     }
 }
 
 @ExperimentalAnimationApi
 @Composable
-fun HelloScreen() {
+fun HelloScreen(color: Color, displayMetrics: DisplayMetrics) {
     val viewModel: TimerViewModel = viewModel()
     Scaffold {
         val seconds: Int by viewModel.seconds.observeAsState(initial = 0)
         val isStarted: State by viewModel.state.observeAsState(initial = State.Finished)
 
-        var width = 1440
+        var width = displayMetrics.widthPixels
+        var height = displayMetrics.heightPixels
+
+        Log.d("tag", "width: " + width)
+        Log.d("tag", "height: " + height)
 
         Column(
             modifier = Modifier
@@ -88,7 +110,7 @@ fun HelloScreen() {
                 .fillMaxHeight(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            BackgroundIndicator(width, seconds)
+            BackgroundIndicator(width, height, seconds, color = color, isStarted)
             CountdownNumber(seconds)
             Control(
                 onTapFab = {
@@ -100,14 +122,25 @@ fun HelloScreen() {
     }
 }
 
+@ExperimentalAnimationApi
 @Composable
-fun BackgroundIndicator(screenWidth: Int, seconds: Int, color: Color = Color.Cyan) {
+fun BackgroundIndicator(
+    screenWidth: Int,
+    screenHeight: Int,
+    seconds: Int,
+    color: Color = Color.Cyan,
+    isStarted: State
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
     ) {
         val canvas = Canvas(modifier = Modifier.fillMaxWidth()) {
-            drawRect(color = color, size = Size(screenWidth.toFloat(), 2400f * seconds / 150))
+            drawRect(
+                color = color,
+                topLeft = Offset(0f, (screenHeight / 50) * 1f * (50 - seconds)),
+                size = Size(screenWidth.toFloat(), 1f * screenHeight)
+            )
         }
     }
 }
@@ -118,20 +151,19 @@ fun CountdownNumber(
 ) {
     Row(
         modifier = Modifier
-            .padding(top = 24.dp, bottom = 24.dp)
-            .height(140.dp)
+            .padding(top = 300.dp, bottom = 24.dp)
             .fillMaxWidth(),
-        horizontalArrangement = Arrangement.Center
+        horizontalArrangement = Arrangement.Center,
     ) {
         Row(
-            verticalAlignment = Alignment.Bottom,
             modifier = Modifier.padding(horizontal = 8.dp)
         ) {
             Text(
                 seconds.toString().padStart(2, '0'),
                 modifier = Modifier.alignByBaseline(),
                 fontSize = 100.sp,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                fontFamily = FontFamily.Monospace
             )
         }
     }
@@ -148,20 +180,12 @@ fun Control(
         enter = fadeIn(),
         exit = fadeOut()
     ) {
-        Box(contentAlignment = Alignment.Center, modifier = Modifier.size(72.dp)) {
-            FloatingActionButton(onClick = onTapFab) {
+        val backgroundColor = Color(ContextCompat.getColor(context, R.color.background_color))
+        Box(contentAlignment = Alignment.Center, modifier = Modifier.size(140.dp).padding(40.dp)) {
+            FloatingActionButton(backgroundColor = backgroundColor, onClick = onTapFab) {
                 AnimatedVisibility(visible = isStarted == State.Finished) {
                 }
             }
         }
-    }
-}
-
-@ExperimentalAnimationApi
-@Preview("Dark Theme", widthDp = 360, heightDp = 640)
-@Composable
-fun DarkPreview() {
-    MyTheme(darkTheme = true) {
-        MyApp()
     }
 }
