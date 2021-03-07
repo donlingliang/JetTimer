@@ -20,6 +20,7 @@ import android.os.Build
 import android.os.Bundle
 import android.util.DisplayMetrics
 import android.util.Log
+import android.view.WindowManager
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
@@ -83,7 +84,14 @@ fun MyApp(context: MainActivity) {
     val highlight_color = Color(ContextCompat.getColor(context, R.color.highlight_color))
 
     val displayMetrics = DisplayMetrics()
-    context.display?.getRealMetrics(displayMetrics)
+    val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+
+    try {
+
+        context.display?.getRealMetrics(displayMetrics)
+    } catch (e: NoSuchMethodError) {
+        windowManager.defaultDisplay.getRealMetrics(displayMetrics)
+    }
 
     Surface(color = backgroundColor) {
         HelloScreen(highlight_color, displayMetrics)
